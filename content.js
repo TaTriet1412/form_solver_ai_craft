@@ -112,7 +112,7 @@ function getPageStructure() {
       label: label.trim().substring(0, 120), // Tăng độ dài cho Google Forms
       required: el.required || el.getAttribute('aria-required') === 'true' || false,
       disabled: el.disabled || false,
-      dataValue: el.getAttribute('data-value') || null, // Cho Google Forms
+      dataValue: el.getAttribute('data-value') || el.getAttribute('data-answer-value') || null, // Cho Google Forms (radio dùng data-value, checkbox dùng data-answer-value)
       qIndex: questionInfo?.questionIndex ?? null // Index câu hỏi (0, 1, 2...)
     };
 
@@ -340,14 +340,28 @@ async function executeJSON(plan) {
     if (!el && isGForms && step.qIndex !== undefined && step.qIndex !== null && targetValue) {
       const questionContainer = questionContainers[step.qIndex];
       if (questionContainer) {
-        // Tìm option có data-value khớp trong câu hỏi này
-        const options = questionContainer.querySelectorAll('[data-value]');
+        // Tìm option có data-value hoặc data-answer-value khớp trong câu hỏi này
+        // Radio dùng data-value, Checkbox dùng data-answer-value
+        const options = questionContainer.querySelectorAll('[data-value], [data-answer-value]');
         for (const opt of options) {
-          if (opt.getAttribute('data-value') === targetValue) {
+          const optValue = opt.getAttribute('data-value') || opt.getAttribute('data-answer-value');
+          if (optValue === targetValue) {
             el = opt;
             console.log(`🎯 Tìm thấy bằng qIndex=${step.qIndex} + dataValue="${targetValue}"`);
             break;
           }
+        }
+      }
+    }
+
+    // ƯU TIÊN 1.5: Tìm input/textarea theo qIndex cho action fill (điền text)
+    if (!el && isGForms && step.qIndex !== undefined && step.qIndex !== null && step.action === "fill") {
+      const questionContainer = questionContainers[step.qIndex];
+      if (questionContainer) {
+        // Tìm input, textarea hoặc contenteditable trong câu hỏi này
+        el = questionContainer.querySelector('input:not([type="hidden"]), textarea, [contenteditable="true"]');
+        if (el) {
+          console.log(`🎯 Tìm thấy input/textarea bằng qIndex=${step.qIndex} cho action fill`);
         }
       }
     }
@@ -376,9 +390,9 @@ async function executeJSON(plan) {
       if (el) console.log(`🔍 Tìm thấy bằng name: "${step.name}"`);
     }
     
-    // ƯU TIÊN 6: Tìm theo data-value (có thể trùng nếu nhiều câu cùng đáp án)
+    // ƯU TIÊN 6: Tìm theo data-value hoặc data-answer-value (có thể trùng nếu nhiều câu cùng đáp án)
     if (!el && targetValue && isGForms) {
-      el = document.querySelector(`[data-value="${targetValue}"]`);
+      el = document.querySelector(`[data-value="${targetValue}"], [data-answer-value="${targetValue}"]`);
       if (el) console.log(`⚠️ Tìm thấy bằng dataValue (có thể không chính xác nếu trùng): "${targetValue}"`);
     }
 

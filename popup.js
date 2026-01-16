@@ -110,7 +110,7 @@ ${JSON.stringify(domData.elements, null, 2)}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📝 YÊU CẦU CỦA TÔI:
-[MÔ TẢ HÀNH ĐỘNG CỦA BẠN TẠI ĐÂY - Ví dụ: Điền form với câu trả lời đúng]
+Hãy trả lời các CÂU HỎI KIẾN THỨC trong form này. Chọn đáp án đúng cho các câu hỏi trắc nghiệm.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 HƯỚNG DẪN TRẢ LỜI:
@@ -118,25 +118,48 @@ ${JSON.stringify(domData.elements, null, 2)}
 ⛔ KHÔNG BAO GỒM ACTION SUBMIT/GỬI FORM - Chỉ điền đáp án, người dùng sẽ tự submit!
 ⛔ KHÔNG giải thích dài dòng - CHỈ trả về code block JSON!
 
-Các action hỗ trợ:
-- { "action": "fill", "id": "element_id", "value": "nội dung" } - Điền text
-- { "action": "click", "qIndex": 0, "dataValue": "option_value" } - Click radio/checkbox theo câu hỏi + đáp án (CHÍNH XÁC NHẤT)
-- { "action": "click", "id": "element_id" } - Click vào phần tử
-- { "action": "select", "id": "element_id", "value": "option_value" } - Chọn dropdown
-- { "action": "wait", "value": 1000 } - Đợi X milliseconds
+🚫 BỎ QUA CÁC CÂU HỎI YÊU CẦU THÔNG TIN CÁ NHÂN CỦA NGƯỜI LÀM FORM (KHÔNG tạo action):
+- "Họ tên của bạn", "Nhập tên của bạn", "Tên học sinh/sinh viên"
+- "Email của bạn", "Địa chỉ email", "Gmail"
+- "Số điện thoại của bạn", "Phone", "Mobile"
+- "Mã số sinh viên", "MSSV", "Mã học sinh"
+- "Lớp của bạn", "Khoa", "Trường", "Địa chỉ của bạn"
+- "Ngày sinh", "Năm sinh", "Giới tính của bạn"
+→ Đặc điểm: câu hỏi YÊU CẦU NGƯỜI LÀM FORM CUNG CẤP thông tin về bản thân họ
+
+✅ VẪN PHẢI TRẢ LỜI các câu hỏi kiến thức có liên quan đến TÊN NGƯỜI:
+- "Ai phát minh ra bóng đèn?" → "Thomas Edison"
+- "Tên nhà khoa học nào tìm ra thuyết tương đối?" → "Albert Einstein"
+- "Vị vua nào khai sáng triều Nguyễn?" → "Gia Long"
+- "Tác giả Truyện Kiều là ai?" → "Nguyễn Du"
+→ Đặc điểm: câu hỏi về KIẾN THỨC LỊCH SỬ/KHOA HỌC/VĂN HÓA, có đáp án cụ thể
+
+✅ CHỈ TRẢ LỜI:
+- Câu hỏi trắc nghiệm (radio button - chọn 1 đáp án)
+- Câu hỏi checkbox (chọn nhiều đáp án)
+- Câu hỏi điền chữ/số có câu trả lời cụ thể (ví dụ: "Thủ đô Việt Nam là gì?" → "Hà Nội")
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 CÁC ACTION HỖ TRỢ:
+1. Radio button (chọn 1): { "action": "click", "qIndex": 0, "dataValue": "đáp án" }
+2. Checkbox (chọn nhiều): { "action": "click", "qIndex": 0, "dataValue": "đáp án 1" } (lặp lại cho mỗi đáp án cần chọn)
+3. Điền text: { "action": "fill", "qIndex": 0, "value": "nội dung trả lời" }
+4. Dropdown: { "action": "select", "id": "element_id", "value": "option_value" }
+5. Đợi: { "action": "wait", "value": 1000 }
 
 ${isGoogleForms ? `⚠️ QUAN TRỌNG CHO GOOGLE FORMS:
 - Mỗi element có "qIndex" (index câu hỏi: 0, 1, 2...) và "dataValue" (nội dung đáp án)
 - PHẢI dùng CẢ HAI: "qIndex" + "dataValue" để tránh nhầm khi 2 câu có đáp án giống nhau!
-- Ví dụ: Câu 1 và câu 5 đều có đáp án "Tất cả đều đúng" → dùng qIndex để phân biệt` : ''}
+- Với checkbox: tạo 1 action click cho MỖI đáp án cần chọn
+- Với câu điền chữ: dùng "fill" với qIndex và value` : ''}
 
-VÍ DỤ OUTPUT${isGoogleForms ? ' (Google Forms - CHỈ ĐIỀN ĐÁP ÁN)' : ''} - PHẢI CÓ CODE BLOCK:
+VÍ DỤ OUTPUT - PHẢI CÓ CODE BLOCK:
 \`\`\`json
 [
-${isGoogleForms ? `  { "action": "click", "qIndex": 0, "dataValue": "Đáp án câu 1" },
-  { "action": "click", "qIndex": 1, "dataValue": "Đáp án câu 2" },
-  { "action": "click", "qIndex": 2, "dataValue": "Tất cả đều đúng" }` : `  { "action": "fill", "id": "email_field", "value": "user@email.com" },
-  { "action": "fill", "id": "password_field", "value": "mypassword123" }`}
+  { "action": "click", "qIndex": 0, "dataValue": "Đáp án A" },
+  { "action": "click", "qIndex": 1, "dataValue": "Lựa chọn 1" },
+  { "action": "click", "qIndex": 1, "dataValue": "Lựa chọn 3" },
+  { "action": "fill", "qIndex": 2, "value": "Hà Nội" }
 ]
 \`\`\``;
 
